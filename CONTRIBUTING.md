@@ -91,6 +91,25 @@ On Windows use `gradlew.bat` instead of `./gradlew`.
 Git hooks (installed by `yarn install` through lefthook) lint and type-check your
 staged files and check your commit message.
 
+### Line endings
+
+Text files are checked out with LF on every platform, so `yarn lint` behaves the
+same everywhere. `.gitattributes` enforces this; you do not need to change any
+Git setting.
+
+A checkout made before that rule existed can still hold CRLF files, and then
+`yarn lint` reports `Delete ␍` on every line. The repository itself is fine, so
+do not commit the fix. Refresh the working tree instead:
+
+```sh
+git rm --cached -r .
+git reset --hard
+yarn install
+```
+
+A fresh clone works too. `git ls-files --eol` shows the result: `i/lf w/lf` for
+text files, and `w/crlf` only for `*.bat`, which must stay CRLF for Windows.
+
 ## Commit messages
 
 We use [Conventional Commits](https://www.conventionalcommits.org), checked by
