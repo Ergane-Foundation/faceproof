@@ -16,6 +16,7 @@ jest.mock('../NativeFaceproof', () => ({
 
 // Imported after the mock is registered.
 const { BiometricSDK } = require('../index') as typeof import('../index');
+import type { InitializeOptions } from '../index';
 
 describe('BiometricSDK', () => {
   beforeEach(() => {
@@ -31,6 +32,69 @@ describe('BiometricSDK', () => {
     expect(() =>
       BiometricSDK.initialize({ matchThreshold: Number.NaN })
     ).toThrow(RangeError);
+  });
+
+  describe('initialize option boundaries', () => {
+    const numericFields = ['matchThreshold', 'minQuality'] as const;
+    type NumericField = (typeof numericFields)[number];
+
+    const optionsWith = (
+      field: NumericField,
+      value: number | undefined
+    ): InitializeOptions =>
+      field === 'matchThreshold'
+        ? { matchThreshold: value }
+        : { minQuality: value };
+
+    const rejectedValues: [string, number][] = [
+      ['-0.01', -0.01],
+      ['1.01', 1.01],
+      ['Infinity', Number.POSITIVE_INFINITY],
+      ['a string', '0.7' as unknown as number],
+    ];
+
+    it.each(numericFields)(
+      'accepts the 0 and 1 bounds of %s',
+      async (field: NumericField) => {
+        await BiometricSDK.initialize(optionsWith(field, 0));
+        expect(mockNative.initialize).toHaveBeenLastCalledWith(
+          optionsWith(field, 0)
+        );
+        await BiometricSDK.initialize(optionsWith(field, 1));
+        expect(mockNative.initialize).toHaveBeenLastCalledWith(
+          optionsWith(field, 1)
+        );
+      }
+    );
+
+    it.each(numericFields)(
+      'accepts an undefined %s',
+      async (field: NumericField) => {
+        await BiometricSDK.initialize(optionsWith(field, undefined));
+        expect(mockNative.initialize).toHaveBeenLastCalledWith(
+          optionsWith(field, undefined)
+        );
+      }
+    );
+
+    it.each(numericFields)(
+      'rejects out-of-range %s values',
+      (field: NumericField) => {
+        for (const [label, value] of rejectedValues) {
+          expect(() =>
+            BiometricSDK.initialize(optionsWith(field, value))
+          ).toThrow(RangeError);
+          expect(() =>
+            BiometricSDK.initialize(optionsWith(field, value))
+          ).toThrow(`${field} must be a number from 0 to 1.`);
+          expect(mockNative.initialize).not.toHaveBeenCalledWith(
+            optionsWith(field, value as number)
+          );
+          // A failure names the offending value.
+          expect(label.length).toBeGreaterThan(0);
+        }
+      }
+    );
   });
 
   it('logs attendance with or without a location', async () => {
