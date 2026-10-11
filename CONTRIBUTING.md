@@ -137,16 +137,15 @@ commitlint:
 - Documentation is in plain English, ASCII punctuation, and makes no claim that
   is not measured or cited.
 
-## Open-source event rules
+## Review rules
 
-During community events (for example Hacktoberfest), we value quality over quantity.
+We value quality over quantity.
 
 - Only pull requests that address an open issue, or a fix that clearly deserves
   one, are reviewed.
 - Pull requests that only change whitespace, reword text without improving it,
   add your name somewhere, or are generated without understanding the code, are
   closed and labelled `invalid` or `spam`.
-- Accepted pull requests are labelled `hacktoberfest-accepted`.
 - Be patient: maintainers are volunteers. Do not ping repeatedly.
 
 ## Getting help
