@@ -98,8 +98,12 @@ same everywhere. `.gitattributes` enforces this; you do not need to change any
 Git setting.
 
 A checkout made before that rule existed can still hold CRLF files, and then
-`yarn lint` reports `Delete ␍` on every line. The repository itself is fine, so
-do not commit the fix. Refresh the working tree instead:
+`yarn lint` reports a `Delete` error for the carriage return on every line. The
+repository itself is fine, so do not commit the fix. Refresh the working tree
+instead.
+
+Commit or stash your work first, because these commands discard uncommitted
+changes:
 
 ```sh
 git rm --cached -r .
