@@ -148,6 +148,18 @@ We value quality over quantity.
   closed and labelled `invalid` or `spam`.
 - Be patient: maintainers are volunteers. Do not ping repeatedly.
 
+## AI-generated contributions
+
+AI tools are fine to use when a person takes responsibility for the result:
+
+- A human opens the pull request from their own account, understands every
+  line of it, and answers review comments themselves.
+- Pull requests opened by autonomous agents, or through platforms that pay
+  agents to claim issues, are closed without review. Issue claims made by such
+  agents are not accepted either.
+- Good first issues are reserved for people who are new to the project and want
+  to learn the codebase.
+
 ## Getting help
 
 See [SUPPORT.md](SUPPORT.md).
