@@ -22,7 +22,7 @@
     "react-native-blob-util": "^0.24.12",
     "react-native-vision-camera": "^4.7.0",
     "react-native-vision-camera-face-detector": "^1.7.0",
-    "react-native-web": "~0.21.3",
+    "react-native-web": "~0.21.4",
     "react-native-worklets-core": "^1.6.0"
   },
   "devDependencies": {
@@ -42,13 +42,13 @@
     "@testing-library/react-native": "^12.0.0",
     "@types/jest": "^30.0.0",
     "@types/react": "^19.2.0",
-    "@vitejs/plugin-react": "^6.1.1",
+    "@vitejs/plugin-react": "^6.1.2",
     "jest": "^30.5.2",
     "react-native-builder-bob": "^0.41.0",
     "react-native-monorepo-config": "^0.3.3",
     "react-test-renderer": "19.2.3",
     "typescript": "^5.0.0",
-    "vite": "^8.3.2",
+    "vite": "^8.3.4",
     "vite-plugin-commonjs": "^0.10.4"
   },
   "engines": {
