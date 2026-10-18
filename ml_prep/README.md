@@ -18,7 +18,7 @@ python -m venv .venv
 # Windows: .venv\Scripts\activate    macOS/Linux: source .venv/bin/activate
 pip install tensorflow
 # calibrate_threshold.py also needs these
-pip install pillow numpy 
+pip install pillow numpy
 # Optional: install matplotlib to generate roc.png
 pip install matplotlib
 ```
@@ -69,7 +69,7 @@ printed while it runs.
 
 ### Output
 
-Files are written to `ml_prep/.cache/calibration/`:
+Files are written to `ml_prep/.cache/calibration/` (or the folder given with --out):
 
 - `summary.json`: the numbers described below.
 - `roc.csv`: columns `threshold`, `far` and `tar`, for thresholds from -0.2 to 1.0 in steps of 0.005.
