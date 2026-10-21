@@ -6,7 +6,7 @@ Calibrate the face-match threshold on the LFW pairs protocol.
 Runs the SDK's own models (android/src/main/assets/models) with the same
 preprocessing as the Android no-face-box path:
 
-  JPEG -> BlazeFace on a letterboxed 128x128 input -> exactly one face required
+  JPEG -> BlazeFace on a letterboxed 128x128 input -> one face, or a clearly dominant one when several are found(DominantFace.kt)
   -> similarity transform that puts the eyes, nose and mouth keypoints on the
   112x112 template (FaceAligner.kt) -> scaled to [-1, 1] -> MobileFaceNet
   -> L2-normalized 192-d embedding -> cosine similarity
@@ -85,7 +85,8 @@ EMBED_SIZE = 112          # FaceAligner.SIZE
 TEMPLATE = np.array([[38.2946, 51.6963], [73.5318, 51.5014], [56.0252, 71.7366], [56.1396, 92.2848]])
 MAX_SIDE = 720            # FaceproofModule.MAX_SIDE
 DEFAULT_MIN_QUALITY = 0.5
-
+DOMINANT_MIN_AREA_RATIO = 1.5
+DOMINANT_MAX_CENTER_OFFSET = 0.25
 
 # --- Downloads -------------------------------------------------------------------
 
@@ -218,10 +219,12 @@ class BlazeFace:
             dets.append((float(scores[i]), xc - bw / 2, yc - bh / 2, bw, bh, kp))
 
         result = []
-        for *_, kp in self._weighted_nms(dets):
-            # Model-input coordinates -> source pixels.
-            result.append(np.stack([(kp[:, 0] * BLAZE_SIZE - pad_x) / scale,
-                                    (kp[:, 1] * BLAZE_SIZE - pad_y) / scale], axis=1))
+        for _, bx, by, bw, bh, kp in self._weighted_nms(dets):
+            box = ((bx * BLAZE_SIZE - pad_x) / scale / w, (by * BLAZE_SIZE - pad_y) / scale / h,
+                   bw * BLAZE_SIZE / scale / w, bh * BLAZE_SIZE / scale / h)
+            pts = np.stack([(kp[:, 0] * BLAZE_SIZE - pad_x) / scale,
+                            (kp[:, 1] * BLAZE_SIZE - pad_y) / scale], axis=1)
+            result.append((box, pts))
         return result
 
     @staticmethod
@@ -313,6 +316,15 @@ def load_image(path: Path) -> Image.Image:
         img = img.resize((round(img.size[0] * s), round(img.size[1] * s)), Image.BILINEAR)
     return img
 
+def select_dominant(faces, min_ratio=DOMINANT_MIN_AREA_RATIO, max_offset=DOMINANT_MAX_CENTER_OFFSET):
+    """Port of DominantFace.select: returns the dominant face or None."""
+    if len(faces) <= 1:
+        return faces[0] if faces else None
+    area = lambda f: max(0.0, f[0][2]) * max(0.0, f[0][3])
+    ranked = sorted(faces, key=area, reverse=True)
+    nx, ny, nw, nh = ranked[0][0]
+    centered = abs(nx + nw / 2 - 0.5) <= max_offset and abs(ny + nh / 2 - 0.5) <= max_offset
+    return ranked[0] if centered and area(ranked[0]) >= min_ratio * area(ranked[1]) else None
 
 # --- Metrics ---------------------------------------------------------------------
 
@@ -349,6 +361,10 @@ def main() -> None:
                         help="Per-comparison FAR for the recommended threshold (default 1e-4)")
     parser.add_argument("--limit", type=int, default=0, help="Use only the first N pairs (quick smoke test)")
     parser.add_argument("--out", type=Path, default=CACHE / "calibration", help="Output folder")
+    parser.add_argument("--no-dominant", action="store_true",
+                        help="Old behavior: exclude every image with a second face (for comparison)")
+    parser.add_argument("--dominant-ratio", type=float, default=DOMINANT_MIN_AREA_RATIO)
+    parser.add_argument("--max-center-offset", type=float, default=DOMINANT_MAX_CENTER_OFFSET)
     args = parser.parse_args()
 
     images_dir, pairs_path = prepare_lfw()
@@ -361,7 +377,7 @@ def main() -> None:
 
     names = sorted({p for pair in pairs for p in pair[1:3]})
     embeddings: dict[str, np.ndarray] = {}
-    outcome = {"no_face": 0, "multiple_faces": 0, "low_quality": 0}
+    outcome = {"no_face": 0, "multiple_faces": 0, "low_quality": 0, "dominant_selected": 0}
     start = time.time()
     for i, name in enumerate(names, 1):
         img = load_image(images_dir / name)
@@ -372,9 +388,13 @@ def main() -> None:
             outcome["no_face"] += 1
             continue
         if len(faces) > 1:
-            outcome["multiple_faces"] += 1
-            continue
-        crop = embedder.align(img, faces[0])
+            chosen = None if args.no_dominant else select_dominant(faces, args.dominant_ratio, args.max_center_offset)
+            if chosen is None:
+                outcome["multiple_faces"] += 1
+                continue
+            outcome["dominant_selected"] += 1
+            faces = [chosen]
+        crop = embedder.align(img, faces[0][1])
         if crop is None:
             outcome["no_face"] += 1
             continue
@@ -473,6 +493,7 @@ def main() -> None:
     print("\n=== Results (LFW, faceproof Android pipeline) ===")
     print(f"Images: {len(names)}, excluded: {outcome['no_face']} no face, {outcome['multiple_faces']} several faces "
           f"({excluded_images / len(names) * 100:.1f}%)")
+    print(f"Images with several faces where a dominant face was chosen: {outcome['dominant_selected']}")
     print(f"Images below quality {DEFAULT_MIN_QUALITY} (counted, not excluded): {outcome['low_quality']}")
     print(f"Pairs used: {len(usable)} of {len(pairs)} ({(1 - len(usable) / len(pairs)) * 100:.1f}% excluded)")
     print(f"10-fold accuracy: {acc_mean * 100:.2f}% (std {acc_std * 100:.2f})")
