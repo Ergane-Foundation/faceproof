@@ -139,7 +139,7 @@ class FaceproofModule(reactContext: ReactApplicationContext) :
       } else {
         val faces = e.detector.detect(frame)
         val dominant = DominantFace.select(faces)
-        if (dominant == null && faces.size>1) return @settle finish("MULTIPLE_FACES")
+        if (dominant == null && faces.size > 1) return@settle finish("MULTIPLE_FACES")
         dominant
       } ?: return@settle finish("NO_FACE")
       val aligned = e.embedder.alignFace(frame, face) ?: return@settle finish("NO_FACE")
