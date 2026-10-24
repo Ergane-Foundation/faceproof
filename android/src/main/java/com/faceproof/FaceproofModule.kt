@@ -138,8 +138,9 @@ class FaceproofModule(reactContext: ReactApplicationContext) :
         e.detector.detectNear(frame, box)
       } else {
         val faces = e.detector.detect(frame)
-        if (faces.size > 1) return@settle finish("MULTIPLE_FACES")
-        faces.firstOrNull()
+        val dominant = DominantFace.select(faces)
+        if (dominant == null && faces.size > 1) return@settle finish("MULTIPLE_FACES")
+        dominant
       } ?: return@settle finish("NO_FACE")
       val aligned = e.embedder.alignFace(frame, face) ?: return@settle finish("NO_FACE")
       val embedding = try {

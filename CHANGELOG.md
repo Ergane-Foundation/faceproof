@@ -7,6 +7,12 @@ versions may contain breaking changes.
 
 ## [Unreleased]
 
+- Verification picks a clearly dominant face (largest, near the center, at
+  least 1.5x the next) instead of returning `MULTIPLE_FACES` when no face box
+  is passed. Enrollment is unchanged. On LFW, 6.3% of pairs are excluded
+  instead of 19.6%; accuracy and the recommended threshold (0.54) are
+  unchanged.
+
 ## [0.2.0] - not released yet
 
 ### Breaking

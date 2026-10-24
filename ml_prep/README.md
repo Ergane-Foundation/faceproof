@@ -40,7 +40,9 @@ and on Windows, macOS and Linux.
 measures how often the match threshold accepts the wrong person or rejects the
 right one. It follows the same steps as the Android path without an app-provided
 face box: face detection, alignment, embedding and cosine similarity. Images where
-Android would answer `NO_FACE` or `MULTIPLE_FACES` are left out and counted, so the
+Android would answer `NO_FACE` or `MULTIPLE_FACES` are left out and counted. When several
+faces are found, one is kept if it is clearly the subject (see "Dominant face rule" in
+[docs/BENCHMARKS.md](../docs/BENCHMARKS.md)); `--no-dominant` turns this off. The
 numbers describe what the SDK would actually do.
 
 FAR (false accept rate) is the share of different-person comparisons that are
@@ -86,7 +88,8 @@ Fields in `summary.json`:
 | `impostor_pairs_protocol` | Different-person pairs from `pairs.txt` where both images produced an embedding. |
 | `impostor_pairs_all_cross_identity` | All different-person pairs among the embedded images. FAR is measured on these, because the protocol's own different-person pairs are too few to measure a FAR of 1e-4. |
 | `images` | Distinct images referenced by the pairs. |
-| `images_excluded` | Counts of `no_face` and `multiple_faces` (these images are excluded) and `low_quality` (counted only, not excluded). |
+| `images_excluded` | Counts of `no_face` and `multiple_faces` (these images are excluded), `dominant_selected` (images with several faces where one dominant face was used; these images are not excluded), and `low_quality` (counted only, not excluded). |
+| `dominant_rule` | Settings used for the dominant-face rule: `enabled`, `min_area_ratio`, and `max_center_offset`. |
 | `image_exclusion_rate` | Share of images excluded for having no face or several faces. |
 | `pair_exclusion_rate` | Share of the protocol pairs dropped because one or both images were excluded. One excluded image removes every pair it appears in, so this is usually higher than `image_exclusion_rate`. |
 | `ten_fold_accuracy_mean`, `ten_fold_accuracy_std` | Mean and standard deviation of the standard LFW 10-fold accuracy. |
