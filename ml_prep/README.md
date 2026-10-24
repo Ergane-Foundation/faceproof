@@ -88,7 +88,8 @@ Fields in `summary.json`:
 | `impostor_pairs_protocol` | Different-person pairs from `pairs.txt` where both images produced an embedding. |
 | `impostor_pairs_all_cross_identity` | All different-person pairs among the embedded images. FAR is measured on these, because the protocol's own different-person pairs are too few to measure a FAR of 1e-4. |
 | `images` | Distinct images referenced by the pairs. |
-| `images_excluded` | Counts of `no_face` and `multiple_faces` (these images are excluded) and `low_quality` (counted only, not excluded). |
+| `images_excluded` | Counts of `no_face` and `multiple_faces` (these images are excluded), `dominant_selected` (images with several faces where one dominant face was used; these images are not excluded), and `low_quality` (counted only, not excluded). |
+| `dominant_rule` | Settings used for the dominant-face rule: `enabled`, `min_area_ratio`, and `max_center_offset`. |
 | `image_exclusion_rate` | Share of images excluded for having no face or several faces. |
 | `pair_exclusion_rate` | Share of the protocol pairs dropped because one or both images were excluded. One excluded image removes every pair it appears in, so this is usually higher than `image_exclusion_rate`. |
 | `ten_fold_accuracy_mean`, `ten_fold_accuracy_std` | Mean and standard deviation of the standard LFW 10-fold accuracy. |

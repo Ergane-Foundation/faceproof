@@ -6,7 +6,8 @@ Calibrate the face-match threshold on the LFW pairs protocol.
 Runs the SDK's own models (android/src/main/assets/models) with the same
 preprocessing as the Android no-face-box path:
 
-  JPEG -> BlazeFace on a letterboxed 128x128 input -> one face, or a clearly dominant one when several are found(DominantFace.kt)
+  JPEG -> BlazeFace on a letterboxed 128x128 input -> one face, or a clearly
+  dominant one when several are found (DominantFace.kt; see select_dominant)
   -> similarity transform that puts the eyes, nose and mouth keypoints on the
   112x112 template (FaceAligner.kt) -> scaled to [-1, 1] -> MobileFaceNet
   -> L2-normalized 192-d embedding -> cosine similarity
@@ -85,8 +86,9 @@ EMBED_SIZE = 112          # FaceAligner.SIZE
 TEMPLATE = np.array([[38.2946, 51.6963], [73.5318, 51.5014], [56.0252, 71.7366], [56.1396, 92.2848]])
 MAX_SIDE = 720            # FaceproofModule.MAX_SIDE
 DEFAULT_MIN_QUALITY = 0.5
-DOMINANT_MIN_AREA_RATIO = 1.5
-DOMINANT_MAX_CENTER_OFFSET = 0.25
+DOMINANT_MIN_AREA_RATIO = 1.5     # DominantFace.DEFAULT_MIN_AREA_RATIO
+DOMINANT_MAX_CENTER_OFFSET = 0.25 # DominantFace.DEFAULT_MAX_CENTER_OFFSET
+
 
 # --- Downloads -------------------------------------------------------------------
 
@@ -192,8 +194,12 @@ class BlazeFace:
             layer = nxt
         return np.array(result, dtype=np.float32)
 
-    def detect(self, img: Image.Image) -> list[np.ndarray]:
-        """Returns the six keypoints (6x2, source pixels) of each face, best first."""
+    def detect(self, img: Image.Image) -> list[tuple[tuple, np.ndarray]]:
+        """Returns (box, keypoints) of each face, best first.
+
+        The box is (nx, ny, nw, nh), normalized to the source image; the
+        keypoints are the six points (6x2) in source pixels.
+        """
         w, h = img.size
         scale = min(BLAZE_SIZE / w, BLAZE_SIZE / h)
         pad_x = (BLAZE_SIZE - w * scale) / 2
@@ -316,6 +322,7 @@ def load_image(path: Path) -> Image.Image:
         img = img.resize((round(img.size[0] * s), round(img.size[1] * s)), Image.BILINEAR)
     return img
 
+
 def select_dominant(faces, min_ratio=DOMINANT_MIN_AREA_RATIO, max_offset=DOMINANT_MAX_CENTER_OFFSET):
     """Port of DominantFace.select: returns the dominant face or None."""
     if len(faces) <= 1:
@@ -325,6 +332,7 @@ def select_dominant(faces, min_ratio=DOMINANT_MIN_AREA_RATIO, max_offset=DOMINAN
     nx, ny, nw, nh = ranked[0][0]
     centered = abs(nx + nw / 2 - 0.5) <= max_offset and abs(ny + nh / 2 - 0.5) <= max_offset
     return ranked[0] if centered and area(ranked[0]) >= min_ratio * area(ranked[1]) else None
+
 
 # --- Metrics ---------------------------------------------------------------------
 
@@ -471,6 +479,11 @@ def main() -> None:
         "impostor_pairs_all_cross_identity": int(len(impostor)),
         "images": len(names),
         "images_excluded": outcome,
+        "dominant_rule": {
+            "enabled": not args.no_dominant,
+            "min_area_ratio": args.dominant_ratio,
+            "max_center_offset": args.max_center_offset,
+        },
         "image_exclusion_rate": excluded_images / len(names),
         "pair_exclusion_rate": 1 - len(usable) / len(pairs),
         "ten_fold_accuracy_mean": acc_mean,

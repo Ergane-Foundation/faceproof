@@ -95,19 +95,32 @@ with other controls, such as a supervisor present at the check-in point.
 
 ## Several faces in the frame
 
-When the app passes no face box and BlazeFace finds more than one face, `verifyWorker` uses the largest face only if it is clearly the subject: its center is within 0.25 of the image center in both directions and its area is at least 1.5 times that of the next face. Otherwise it returns `MULTIPLE_FACES`. Enrollment is stricter: `enrollWorker` still skips every frame with more than one face, because a wrong face in a template affects all later verifications.
+When the app passes no face box and BlazeFace finds more than one face,
+`verifyWorker` uses the largest face only if it is clearly the subject: its
+center is within 0.25 of the image center in both directions and its area is at
+least 1.5 times that of the next face. Otherwise it returns `MULTIPLE_FACES`.
+Enrollment is stricter: `enrollWorker` still skips every frame with more than
+one face, because a wrong face in a template affects all later verifications.
 
 Trade-offs:
 
-- The rule judges size and position, not whether a face belongs to a real, live person. A person standing in front of a large printed photo of someone else, or holding one next to their face, can lead to the photo's face being verified.
-- In this mode the verified face may not be the face that completed the liveness challenge, for example when a large printed photo is held near the camera next to a real person.
-- Apps should therefore pass the face box from their liveness detector, so the verified face is the one that passed liveness. The example app does this when the ML Kit switch is on.
+- The rule judges size and position, not whether a face belongs to a real, live
+  person. A person standing in front of a large printed photo of someone else,
+  or holding one next to their face, can lead to the photo's face being
+  verified.
+- In this mode the verified face may not be the face that completed the
+  liveness challenge, for example when a large printed photo is held near the
+  camera next to a real person.
+- Apps should therefore pass the face box from their liveness detector, so the
+  verified face is the one that passed liveness. The example app does this when
+  the ML Kit switch is on.
 
-The benchmark in BENCHMARKS.md does not measure these cases.
+The benchmark in [BENCHMARKS.md](BENCHMARKS.md#dominant-face-rule) does not
+measure these cases.
 
 ## Out of scope
 
-- An attacker wigit th root access and a debugger on an unlocked device can read
+- An attacker with root access and a debugger on an unlocked device can read
   memory while the database is open. No app-level encryption prevents that.
 - A compromised Android Keystore or secure hardware.
 - Accuracy and fairness of the face model. See [MODELS.md](MODELS.md) and [BENCHMARKS.md](BENCHMARKS.md).

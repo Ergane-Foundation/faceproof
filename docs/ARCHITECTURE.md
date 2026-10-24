@@ -77,7 +77,7 @@ flowchart TD
   D -- no --> E["BlazeFace on the whole frame"]
   E -- "0 faces" --> N["NO_FACE"]
   E -- "2 or more faces, none clearly dominant" --> M["MULTIPLE_FACES"]
-  E -- "1  or none clearly dominant face" --> F["Align: eyes, nose and mouth onto the 112x112 template"]
+  E -- "1 face, or one clearly dominant face" --> F["Align: eyes, nose and mouth onto the 112x112 template"]
   E2 -- "found" --> F
   E2 -- "none" --> N
   F --> G["MobileFaceNet: 192 values, L2-normalized"]

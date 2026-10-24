@@ -7,7 +7,11 @@ versions may contain breaking changes.
 
 ## [Unreleased]
 
-- Verification picks a clearly dominant face (largest, near the center, at least 1.5x the next) instead of returning MULTIPLE_FACES when no face box is passed. Enrollment is unchanged.
+- Verification picks a clearly dominant face (largest, near the center, at
+  least 1.5x the next) instead of returning `MULTIPLE_FACES` when no face box
+  is passed. Enrollment is unchanged. On LFW, 6.3% of pairs are excluded
+  instead of 19.6%; accuracy and the recommended threshold (0.54) are
+  unchanged.
 
 ## [0.2.0] - not released yet
 
@@ -38,7 +42,9 @@ versions may contain breaking changes.
   because React Native has no `crypto.getRandomValues`.
 - `initialize({ matchThreshold, minQuality })`.
 - Default `matchThreshold` is now 0.54 (was 0.65), calibrated on the LFW benchmark
-  for a false accept rate of 1e-4 per comparison: 99.29% 10-fold accuracy, TAR 93.21% at the default, with 3.3% of images (6.3% of pairs) excluded because no face was clearly the subject. LFW is likely an upper bound. The 1:N false-match risk grows with
+  for a false accept rate of 1e-4 per comparison: 99.28% 10-fold accuracy, TAR
+  92.97% at the default, with 10.8% of images (19.6% of pairs) excluded for a second
+  visible face. LFW is likely an upper bound. The 1:N false-match risk grows with
   the number enrolled (about N x FAR); see docs/BENCHMARKS.md.
 - `deviceId` in attendance records; versioned signature payload that is the same
   on Android and iOS.
