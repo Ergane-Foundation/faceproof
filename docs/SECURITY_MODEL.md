@@ -107,7 +107,7 @@ The benchmark in BENCHMARKS.md does not measure these cases.
 
 ## Out of scope
 
-- An attacker with root access and a debugger on an unlocked device can read
+- An attacker wigit th root access and a debugger on an unlocked device can read
   memory while the database is open. No app-level encryption prevents that.
 - A compromised Android Keystore or secure hardware.
 - Accuracy and fairness of the face model. See [MODELS.md](MODELS.md) and [BENCHMARKS.md](BENCHMARKS.md).
