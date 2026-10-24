@@ -52,7 +52,7 @@ export interface InitializeOptions {
 /**
  * - `MATCH` / `NO_MATCH`: a face was embedded and compared.
  * - `NO_FACE`: no usable face was found.
- * - `MULTIPLE_FACES`: several faces were found with no face box given (Android).
+ * - `MULTIPLE_FACES`: several faces were found, none clearly the subject, and no face box was given (Android).
  * - `POOR_QUALITY`: the frame was too blurred or badly exposed.
  */
 export type VerifyStatus =
