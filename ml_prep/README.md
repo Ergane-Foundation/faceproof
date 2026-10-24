@@ -40,7 +40,9 @@ and on Windows, macOS and Linux.
 measures how often the match threshold accepts the wrong person or rejects the
 right one. It follows the same steps as the Android path without an app-provided
 face box: face detection, alignment, embedding and cosine similarity. Images where
-Android would answer `NO_FACE` or `MULTIPLE_FACES` are left out and counted, so the
+Android would answer `NO_FACE` or `MULTIPLE_FACES` are left out and counted. When several
+faces are found, one is kept if it is clearly the subject (see "Dominant face rule" in
+[docs/BENCHMARKS.md](../docs/BENCHMARKS.md)); `--no-dominant` turns this off. The
 numbers describe what the SDK would actually do.
 
 FAR (false accept rate) is the share of different-person comparisons that are

@@ -103,7 +103,7 @@ folds) and reports:
 - the ROC curve and a recommended threshold for a target FAR.
 
 Images where Android would answer `NO_FACE` or `MULTIPLE_FACES` are excluded
-and counted. Accuracy does not depend on the phone, only the speed does.
+and counted. With several faces, one face is kept if it is clearly the subject (see “Dominant face rule” below). Accuracy does not depend on the phone, only the speed does.
 
 ### Results: LFW benchmark, likely an upper bound
 
@@ -114,20 +114,15 @@ These numbers are an upper bound on what to expect in the field, for two reasons
 - The model's training data (MS-Celeb-1M) overlaps LFW identities, so the model
   may have seen many of these people before.
 
-Run on 2026-10-06 with `ml_prep/calibrate_threshold.py` (model hashes as in
-[MODELS.md](MODELS.md)). Every number below excludes the same images: **10.8% of
-images (833 of 7,701) were excluded because a second face was visible**, which
-Android would answer with `MULTIPLE_FACES`; no image was rejected for having no
-face. That leaves 4,825 of 6,000 pairs (**19.6% of pairs excluded**): 2,376
-same-person pairs and 23.6 million different-person pairs.
+Run on 2026-10-24 with ml_prep/calibrate_threshold.py (model hashes as in MODELS.md). Every number below excludes the same images: 3.3% of images (254 of 7,701) were excluded because a second face was visible and no face was clearly the subject (Android answers MULTIPLE_FACES); no image was rejected for having no face. That leaves 5,623 of 6,000 pairs (6.3% of pairs excluded): 2,812 same-person pairs and 27,717,625 different-person pairs.
 
-| Measure (10.8% of images, 19.6% of pairs excluded) | Result |
+| Measure (3.3% of images, 6.3% of pairs excluded) | Result |
 |----------------------------------------------------|--------|
-| 10-fold accuracy | 99.28% (standard deviation 0.54) |
-| TAR at FAR 1e-2 (threshold 0.350) | 99.12% |
-| TAR at FAR 1e-3 (threshold 0.454) | 96.76% |
-| TAR at FAR 1e-4 (threshold 0.533) | 93.31% |
-| **At the default threshold 0.54** | **FAR 8.0e-5, TAR 92.97%** |
+| 10-fold accuracy | 99.29% (standard deviation 0.45) |
+| TAR at FAR 1e-2 (threshold 0.350) | 99.08% |
+| TAR at FAR 1e-3 (threshold 0.454) | 96.94% |
+| TAR at FAR 1e-4 (threshold 0.534) | 93.53% |
+| **At the default threshold 0.54** | **FAR 8.11e-5, TAR 93.21%** |
 
 FAR is the false accept rate per comparison of two faces; TAR is the share of
 same-person pairs accepted. 4,864 of the 7,701 LFW images (63%) score below the
@@ -143,19 +138,36 @@ decimals, at which the measured FAR is at most **1e-4 per comparison**.
 
 `verifyWorker` compares the photo with every enrolled person and returns the best
 match. A person who is not enrolled is therefore falsely matched to *someone* with
-probability `1 - (1 - FAR)^N`, which is about **N x FAR** while that is small. At
-the default threshold (FAR 8.0e-5 on LFW):
+probability `1 - (1 - FAR)^N`, which is about **N x FAR** while that is small. At the default threshold (FAR 8.11e-5 on LFW):
 
 | People enrolled (N) | About N x FAR | Chance a non-enrolled person matches someone |
 |---------------------|---------------|----------------------------------------------|
 | 10 | 0.08% | 0.08% |
-| 100 | 0.8% | 0.80% |
-| 1,000 | 8% | 7.7% |
+| 100 | 0.81% | 0.81% |
+| 1,000 | 8.11% | 7.79% |
 
 For large groups, raise `matchThreshold` (a stricter threshold lowers FAR but
 rejects more genuine attempts), split people into smaller groups per site or
 device, or keep a person in the loop for decisions that matter. These figures are
 from LFW, so real-world risk is likely higher.
+
+### Dominant face rule
+
+When BlazeFace finds several faces and the app passes no face box, `verifyWorker` uses the largest face only if its center is within 0.25 of the image center in both directions and its area is at least 1.5 times the area of the next face; otherwise it returns `MULTIPLE_FACES`. `enrollWorker` is unchanged and still skips frames with several faces. `ml_prep/calibrate_threshold.py` applies the same rule (`--dominant-ratio`, `--max-center-offset`); `--no-dominant` gives the old behavior, where any second face causes the image to be excluded.
+
+The comparison below uses the same LFW images and pairs. The new default applies the clearly dominant-face rule; the old behavior excludes every image where a second face is visible.
+
+| Measure | Old `--no-dominant` | New default (1.5x) |
+|---|---:|---:|
+| Images excluded | 10.8% (833/7,701) | 3.3% (254/7,701) |
+| Pairs excluded | 19.6% | 6.3% |
+| 10-fold accuracy | 99.28% (std 0.54) | 99.29% (std 0.45) |
+| TAR at FAR 1e-4 | 93.31% | 93.53% |
+| Recommended threshold | 0.54 | 0.54 |
+
+The rule chose a face in 579 of the 833 images that previously returned `MULTIPLE_FACES`, so 579 images are rescued by the new rule.
+
+The important limitation is that LFW mostly tests the **area ratio**: its photos are centered crops, so the center-position condition is not meaningfully stressed. The real-world trade-off is not measured here; these benchmark results do not tell us how the rule behaves with real bystanders or with a large printed photo held next to a person. See `SECURITY_MODEL.md`.
 
 ### Why faces are aligned
 
@@ -168,6 +180,7 @@ faces. iOS does not align yet, so none of these numbers apply to iOS.
 ### Re-running
 
 ```sh
+python ml_prep/calibrate_threshold.py --no-dominant       # old behavior: any second face is excluded
 python ml_prep/calibrate_threshold.py                     # FAR 1e-4 (default)
 python ml_prep/calibrate_threshold.py --target-far 1e-5   # stricter
 ```
