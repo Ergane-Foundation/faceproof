@@ -105,7 +105,7 @@
   ],
   "resolutions": {
     "jest-environment-node": "^30.0.0",
-    "undici": "^6.29.0",
+    "undici": "^6.29.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-test-renderer": "19.2.3"
