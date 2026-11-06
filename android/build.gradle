@@ -76,7 +76,7 @@ dependencies {
   implementation "com.google.ai.edge.litert:litert:1.4.2"
 
   // Encrypted SQLite (SQLCipher, AES-256), also 16 KB aligned.
-  implementation "net.zetetic:sqlcipher-android:4.19.1@aar"
+  implementation "net.zetetic:sqlcipher-android:4.20.0@aar"
   implementation "androidx.sqlite:sqlite:2.7.0"
 
   // Reads the JPEG EXIF orientation that camera libraries write instead of
