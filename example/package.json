@@ -42,13 +42,13 @@
     "@testing-library/react-native": "^12.0.0",
     "@types/jest": "^30.0.0",
     "@types/react": "^19.2.0",
-    "@vitejs/plugin-react": "^6.1.2",
+    "@vitejs/plugin-react": "^6.2.1",
     "jest": "^30.5.2",
     "react-native-builder-bob": "^0.41.0",
     "react-native-monorepo-config": "^0.3.3",
     "react-test-renderer": "19.2.3",
     "typescript": "^5.0.0",
-    "vite": "^8.3.5",
+    "vite": "^8.3.6",
     "vite-plugin-commonjs": "^0.10.4"
   },
   "engines": {
